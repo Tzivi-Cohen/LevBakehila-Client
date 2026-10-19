@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { apiRequest } from '../api.js';
+import { Alert, Icon } from '../ui.jsx';
+
+const FEATURES = [
+  { icon: 'search', title: 'מוצאות פעילות שמתאימה', text: 'סינון לפי שכונה, סוג פעילות ומקומות פנויים.' },
+  { icon: 'calendar', title: 'נרשמות בלחיצה', text: 'המערכת שומרת שלא תירשמי לשתי פעילויות באותה שעה.' },
+  { icon: 'users', title: 'רכזת עם תמונה מלאה', text: 'ניהול פעילויות, נרשמות ומיומנויות במקום אחד.' }
+];
 
 export default function LoginPage({ onLogin }) {
+  const [mode, setMode] = useState('login');
   const [login, setLogin] = useState({ email: '', password: '' });
   const [register, setRegister] = useState({ fullName: '', email: '', password: '', neighborhood: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const doLogin = async (credentials) => {
     const data = await apiRequest('/api/auth/login', { method: 'POST', body: credentials });
@@ -15,10 +24,12 @@ export default function LoginPage({ onLogin }) {
   const submitLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setBusy(true);
     try {
       await doLogin(login);
     } catch (err) {
       setError(err.message);
+      setBusy(false);
     }
   };
 
@@ -26,58 +37,126 @@ export default function LoginPage({ onLogin }) {
     e.preventDefault();
     setError('');
     setMessage('');
+    setBusy(true);
     try {
       await apiRequest('/api/auth/register', { method: 'POST', body: register });
       setMessage('ההרשמה הצליחה! מתחברת...');
       await doLogin({ email: register.email, password: register.password });
     } catch (err) {
       setError(err.message);
+      setBusy(false);
     }
   };
 
+  const switchMode = (next) => {
+    setMode(next);
+    setError('');
+    setMessage('');
+  };
+
   return (
-    <div className="container">
-      <h1>לב בקהילה</h1>
-      {error && <p className="error">{error}</p>}
-      {message && <p className="success">{message}</p>}
+    <div className="auth">
+      <section className="auth-hero">
+        <div className="brand">
+          <span className="brand-mark"><Icon name="heart" size={22} strokeWidth={2.2} /></span>
+          <span className="brand-name">לב בקהילה<small>התנדבות שמחברת שכונה</small></span>
+        </div>
 
-      <div className="card">
-        <h2>התחברות</h2>
-        <form className="row" onSubmit={submitLogin}>
-          <label>אימייל
-            <input type="email" required value={login.email}
-              onChange={(e) => setLogin({ ...login, email: e.target.value })} />
-          </label>
-          <label>סיסמה
-            <input type="password" required value={login.password}
-              onChange={(e) => setLogin({ ...login, password: e.target.value })} />
-          </label>
-          <button type="submit">התחברות</button>
-        </form>
-      </div>
+        <div>
+          <h1>כל שעה שאת נותנת <em>מחממת לב</em> של מישהו בשכונה.</h1>
+          <p className="lead">מצטרפות לפעילויות התנדבות קרובות לבית – עזרה בשיעורי בית, ליווי בשבת ופעילויות חברתיות – ורואות בזמן אמת כמה מקומות נשארו.</p>
+        </div>
 
-      <div className="card">
-        <h2>הרשמה כמתנדבת</h2>
-        <form className="row" onSubmit={submitRegister}>
-          <label>שם מלא
-            <input required minLength={2} value={register.fullName}
-              onChange={(e) => setRegister({ ...register, fullName: e.target.value })} />
-          </label>
-          <label>אימייל
-            <input type="email" required value={register.email}
-              onChange={(e) => setRegister({ ...register, email: e.target.value })} />
-          </label>
-          <label>סיסמה (לפחות 8 תווים)
-            <input type="password" required minLength={8} value={register.password}
-              onChange={(e) => setRegister({ ...register, password: e.target.value })} />
-          </label>
-          <label>שכונה
-            <input required minLength={2} value={register.neighborhood}
-              onChange={(e) => setRegister({ ...register, neighborhood: e.target.value })} />
-          </label>
-          <button type="submit">הרשמה</button>
-        </form>
-      </div>
+        <div className="features">
+          {FEATURES.map((f) => (
+            <div className="feature" key={f.title}>
+              <span className="icon-wrap"><Icon name={f.icon} /></span>
+              <div><b>{f.title}</b><span>{f.text}</span></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="auth-panel">
+        <div className="auth-card">
+          <h2>{mode === 'login' ? 'ברוכה השבה 👋' : 'הצטרפי אלינו'}</h2>
+          <p className="sub">{mode === 'login' ? 'התחברי כדי לראות פעילויות ולהירשם.' : 'פתיחת חשבון מתנדבת לוקחת פחות מדקה.'}</p>
+
+          <div className="segmented" role="tablist">
+            <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'active' : ''}
+              onClick={() => switchMode('login')}>התחברות</button>
+            <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'active' : ''}
+              onClick={() => switchMode('register')}>הרשמה כמתנדבת</button>
+          </div>
+
+          <div className="stack" style={{ gap: 12, marginBottom: error || message ? 18 : 0 }}>
+            <Alert type="error" onClose={() => setError('')}>{error}</Alert>
+            <Alert type="success">{message}</Alert>
+          </div>
+
+          {mode === 'login' ? (
+            <form className="auth-form" onSubmit={submitLogin} key="login">
+              <label className="field">אימייל
+                <span className="input-icon">
+                  <Icon name="mail" size={17} />
+                  <input className="input" type="email" required autoComplete="email" placeholder="name@example.com" dir="ltr"
+                    value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} />
+                </span>
+              </label>
+              <label className="field">סיסמה
+                <span className="input-icon">
+                  <Icon name="lock" size={17} />
+                  <input className="input" type="password" required autoComplete="current-password" placeholder="••••••••" dir="ltr"
+                    value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} />
+                </span>
+              </label>
+              <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy}>
+                {busy ? <span className="spinner" /> : <Icon name="arrow-left" />} התחברות
+              </button>
+            </form>
+          ) : (
+            <form className="auth-form" onSubmit={submitRegister} key="register">
+              <label className="field">שם מלא
+                <span className="input-icon">
+                  <Icon name="user" size={17} />
+                  <input className="input" required minLength={2} autoComplete="name"
+                    value={register.fullName} onChange={(e) => setRegister({ ...register, fullName: e.target.value })} />
+                </span>
+              </label>
+              <label className="field">אימייל
+                <span className="input-icon">
+                  <Icon name="mail" size={17} />
+                  <input className="input" type="email" required autoComplete="email" placeholder="name@example.com" dir="ltr"
+                    value={register.email} onChange={(e) => setRegister({ ...register, email: e.target.value })} />
+                </span>
+              </label>
+              <label className="field">סיסמה <span className="muted" style={{ fontWeight: 400 }}>(לפחות 8 תווים)</span>
+                <span className="input-icon">
+                  <Icon name="lock" size={17} />
+                  <input className="input" type="password" required minLength={8} autoComplete="new-password" dir="ltr"
+                    value={register.password} onChange={(e) => setRegister({ ...register, password: e.target.value })} />
+                </span>
+              </label>
+              <label className="field">שכונה
+                <span className="input-icon">
+                  <Icon name="pin" size={17} />
+                  <input className="input" required minLength={2}
+                    value={register.neighborhood} onChange={(e) => setRegister({ ...register, neighborhood: e.target.value })} />
+                </span>
+              </label>
+              <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy}>
+                {busy ? <span className="spinner" /> : <Icon name="sparkles" />} יצירת חשבון
+              </button>
+            </form>
+          )}
+
+          <p className="auth-foot">
+            {mode === 'login'
+              ? <>עדיין אין לך חשבון? <button type="button" className="link-btn" onClick={() => switchMode('register')}>להרשמה</button></>
+              : <>כבר רשומה? <button type="button" className="link-btn" onClick={() => switchMode('login')}>להתחברות</button></>}
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
