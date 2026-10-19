@@ -61,5 +61,42 @@ export const CATEGORIES = {
   SocialActivity: 'פעילות חברתית'
 };
 
+// ---------- Time: the API speaks UTC ("...Z"); users always see Israel time ----------
+export const ISRAEL_TZ = 'Asia/Jerusalem';
+
 export const formatDate = (value) =>
-  new Date(value).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+  new Date(value).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short', timeZone: ISRAEL_TZ });
+
+// The Israel wall-clock parts of a moment, whatever the browser's own time zone is
+function israelParts(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: ISRAEL_TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(date);
+  return Object.fromEntries(parts.filter((p) => p.type !== 'literal').map((p) => [p.type, Number(p.value)]));
+}
+
+// Israel's offset from UTC (ms) at a given moment: +3h in summer, +2h in winter
+function israelOffset(utcMs) {
+  const p = israelParts(new Date(utcMs));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(utcMs / 1000) * 1000;
+}
+
+const pad = (n) => String(n).padStart(2, '0');
+
+// API value (UTC) -> "2026-10-21T16:00" in Israel time, for <input type="datetime-local">
+export function toIsraelInput(value) {
+  const p = israelParts(new Date(value));
+  return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
+}
+
+// "2026-10-21T16:00" typed in Israel time -> "2026-10-21T13:00:00.000Z" for the API
+export function fromIsraelInput(value) {
+  const [date, time] = value.split('T');
+  const [y, m, d] = date.split('-').map(Number);
+  const [hh, mm] = time.split(':').map(Number);
+  const wallClock = Date.UTC(y, m - 1, d, hh, mm);
+  // First guess with the offset at that wall-clock time, then correct once around the summer/winter switch
+  let utc = wallClock - israelOffset(wallClock);
+  utc = wallClock - israelOffset(utc);
+  return new Date(utc).toISOString();
+}

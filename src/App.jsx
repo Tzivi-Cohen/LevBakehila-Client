@@ -5,6 +5,7 @@ import ActivitiesPage from './pages/ActivitiesPage.jsx';
 import ActivityDetailsPage from './pages/ActivityDetailsPage.jsx';
 import MyRegistrationsPage from './pages/MyRegistrationsPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 
 export default function App() {
   const [auth, setAuth] = useState(loadAuth);
@@ -14,6 +15,13 @@ export default function App() {
     saveAuth(data);
     setAuth(data);
     setPage({ name: data.role === 'Admin' ? 'admin' : 'activities' });
+  };
+
+  // The header greets the user by name - keep it in sync after a profile update
+  const updateName = (fullName) => {
+    const next = { ...auth, fullName };
+    saveAuth(next);
+    setAuth(next);
   };
 
   const logout = () => {
@@ -33,6 +41,7 @@ export default function App() {
           <button onClick={() => setPage({ name: 'activities' })}>פעילויות</button>
           {!isAdmin && <button onClick={() => setPage({ name: 'mine' })}>ההרשמות שלי</button>}
           {isAdmin && <button onClick={() => setPage({ name: 'admin' })}>ניהול</button>}
+          <button onClick={() => setPage({ name: 'profile' })}>הפרופיל שלי</button>
           <span className="user">שלום, {auth.fullName}</span>
           <button onClick={logout}>התנתקות</button>
         </nav>
@@ -44,6 +53,7 @@ export default function App() {
       )}
       {page.name === 'mine' && <MyRegistrationsPage />}
       {page.name === 'admin' && isAdmin && <AdminPage />}
+      {page.name === 'profile' && <ProfilePage onSaved={updateName} />}
     </div>
   );
 }

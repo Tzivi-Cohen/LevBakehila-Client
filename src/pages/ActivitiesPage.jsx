@@ -5,7 +5,7 @@ const PAGE_SIZE = 5;
 
 export default function ActivitiesPage({ onOpen }) {
   const [filters, setFilters] = useState({
-    neighborhood: '', category: '', onlyAvailable: false, sortBy: 'startTime', sortDirection: 'asc'
+    neighborhood: '', category: '', onlyAvailable: false, myNeighborhoodFirst: false, sortBy: 'startTime', sortDirection: 'asc'
   });
   const [pageNumber, setPageNumber] = useState(1);
   const [result, setResult] = useState(null);
@@ -15,7 +15,7 @@ export default function ActivitiesPage({ onOpen }) {
     // Filtering, sorting and paging are done by the server (Skip/Take in SQL)
     const params = new URLSearchParams({
       pageNumber, pageSize: PAGE_SIZE, sortBy: filters.sortBy, sortDirection: filters.sortDirection,
-      onlyAvailable: filters.onlyAvailable
+      onlyAvailable: filters.onlyAvailable, myNeighborhoodFirst: filters.myNeighborhoodFirst
     });
     if (filters.neighborhood) params.set('neighborhood', filters.neighborhood);
     if (filters.category) params.set('category', filters.category);
@@ -62,6 +62,10 @@ export default function ActivitiesPage({ onOpen }) {
         <label>
           <span><input type="checkbox" checked={filters.onlyAvailable}
             onChange={(e) => changeFilter('onlyAvailable', e.target.checked)} /> רק פעילויות פנויות</span>
+        </label>
+        <label>
+          <span><input type="checkbox" checked={filters.myNeighborhoodFirst}
+            onChange={(e) => changeFilter('myNeighborhoodFirst', e.target.checked)} /> קודם בשכונה שלי</span>
         </label>
       </div>
 

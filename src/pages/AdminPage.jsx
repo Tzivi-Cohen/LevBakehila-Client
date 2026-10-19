@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
-import { apiRequest, CATEGORIES, formatDate } from '../api.js';
+import { apiRequest, CATEGORIES, formatDate, fromIsraelInput, toIsraelInput } from '../api.js';
+import SkillsAdmin from './SkillsAdmin.jsx';
 
 const emptyForm = {
   title: '', description: '', category: 'HomeworkHelp', neighborhood: '', startTime: '', endTime: '', maxVolunteers: 1, requiredSkillIds: []
 };
 
-// "2026-10-20T16:00:00" -> "2026-10-20T16:00" for <input type="datetime-local">
-const toInputDate = (value) => value.slice(0, 16);
-// "2026-10-20T16:00" -> "2026-10-20T16:00:00" for the API
-const toApiDate = (value) => (value.length === 16 ? `${value}:00` : value);
+// The form shows and accepts Israel time; the API receives and returns UTC
 
 export default function AdminPage() {
   const [activities, setActivities] = useState([]);
@@ -24,9 +22,11 @@ export default function AdminPage() {
       .then((page) => setActivities(page.items))
       .catch((err) => setError(err.message));
 
+  const loadSkills = () => apiRequest('/api/skills').then(setSkills).catch((err) => setError(err.message));
+
   useEffect(() => {
     load();
-    apiRequest('/api/skills').then(setSkills).catch((err) => setError(err.message));
+    loadSkills();
   }, []);
 
   const run = async (action, successText) => {
@@ -45,8 +45,8 @@ export default function AdminPage() {
     e.preventDefault();
     const body = {
       ...form,
-      startTime: toApiDate(form.startTime),
-      endTime: toApiDate(form.endTime),
+      startTime: fromIsraelInput(form.startTime),
+      endTime: fromIsraelInput(form.endTime),
       maxVolunteers: Number(form.maxVolunteers)
     };
     run(async () => {
@@ -61,7 +61,7 @@ export default function AdminPage() {
     setEditingId(a.id);
     setForm({
       title: a.title, description: a.description, category: a.category, neighborhood: a.neighborhood,
-      startTime: toInputDate(a.startTime), endTime: toInputDate(a.endTime), maxVolunteers: a.maxVolunteers,
+      startTime: toIsraelInput(a.startTime), endTime: toIsraelInput(a.endTime), maxVolunteers: a.maxVolunteers,
       requiredSkillIds: a.requiredSkills.map((s) => s.id)
     });
   };
@@ -79,7 +79,7 @@ export default function AdminPage() {
   const showRegistrations = async (a) => {
     setError('');
     try {
-      const list = await apiRequest(`/api/registrations/activity/${a.id}`);
+      const list = await apiRequest(`/api/activities/${a.id}/registrations`);
       setRegistrations({ activity: a, list });
     } catch (err) {
       setError(err.message);
@@ -115,8 +115,8 @@ export default function AdminPage() {
             </select>
           </label>
           <label>שכונה<input required minLength={2} {...field('neighborhood')} /></label>
-          <label>התחלה<input type="datetime-local" required {...field('startTime')} /></label>
-          <label>סיום<input type="datetime-local" required {...field('endTime')} /></label>
+          <label>התחלה (שעון ישראל)<input type="datetime-local" required {...field('startTime')} /></label>
+          <label>סיום (שעון ישראל)<input type="datetime-local" required {...field('endTime')} /></label>
           <label>מספר מתנדבות<input type="number" min={1} max={100} required {...field('maxVolunteers')} /></label>
         </div>
         <label>תיאור<textarea rows={2} {...field('description')} /></label>
@@ -155,6 +155,8 @@ export default function AdminPage() {
           ))}
         </tbody>
       </table>
+
+      <SkillsAdmin skills={skills} onChanged={() => { loadSkills(); load(); }} />
 
       {registrations && (
         <div className="card">
