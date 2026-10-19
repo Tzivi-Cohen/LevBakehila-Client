@@ -129,7 +129,7 @@ export default function AdminPage() {
   return (
     <div>
       <PageHeader eyebrow="ממשק רכזת" icon="shield" title="ניהול פעילויות"
-        subtitle="יצירה, עריכה וביטול של פעילויות, מעקב אחר נרשמות וניהול מיומנויות." />
+        subtitle="יצירה, עריכה וביטול של פעילויות עם הילדים, מעקב אחר נרשמות וניהול מיומנויות." />
 
       <div className="stats">
         {stats.map((s) => (
@@ -252,7 +252,7 @@ export default function AdminPage() {
           <div className="overlay" onClick={() => setRegistrations(null)} />
           <div className="drawer" role="dialog" aria-modal="true" aria-label={`נרשמות ל־${registrations.activity.title}`}>
             <div className="drawer-head">
-              <span className="icon-wrap" style={{ background: 'rgba(255,255,255,.14)', color: '#ffd4bd' }}><Icon name="users" /></span>
+              <span className="icon-wrap" style={{ background: 'rgba(255,255,255,.18)', color: '#fff' }}><Icon name="users" /></span>
               <div>
                 <h3>נרשמות ל־{registrations.activity.title}</h3>
                 <small>

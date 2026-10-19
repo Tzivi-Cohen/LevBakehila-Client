@@ -72,7 +72,7 @@ export function Alert({ type = 'success', children, onClose }) {
 export function Loader({ text = 'טוען...' }) {
   return (
     <div className="loader" role="status">
-      <span className="spinner" />
+      <span className="loader-heart"><Icon name="heart" size={30} strokeWidth={2.2} /></span>
       <p>{text}</p>
     </div>
   );
@@ -102,7 +102,7 @@ export function PageHeader({ eyebrow, icon, title, subtitle, children }) {
 }
 
 // ---------- Badges ----------
-const CATEGORY_ICONS = {
+export const CATEGORY_ICONS = {
   FridayNight: 'moon', SaturdayAfternoon: 'sun', WeekdayAfternoon: 'clock', HomeworkHelp: 'book', SocialActivity: 'smile'
 };
 

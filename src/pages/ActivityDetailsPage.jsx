@@ -10,10 +10,19 @@ export default function ActivityDetailsPage({ id, isAdmin, onBack }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // Whether the volunteer already has an active registration to this activity (null = unknown)
+  const [registered, setRegistered] = useState(null);
 
   const load = () => apiRequest(`/api/activities/${id}`).then(setActivity).catch((err) => setError(err.message));
 
+  const loadMine = () =>
+    apiRequest('/api/registrations/mine')
+      .then((list) => setRegistered(list.some((r) => r.activityId === id && r.status === 'Active')))
+      .catch(() => setRegistered(null));
+
   useEffect(() => { load(); }, [id]);
+
+  useEffect(() => { if (!isAdmin) loadMine(); }, [id, isAdmin]);
 
   // The volunteer's own skills, to show which of the required skills she already has
   useEffect(() => {
@@ -27,12 +36,12 @@ export default function ActivityDetailsPage({ id, isAdmin, onBack }) {
     setBusy(true);
     try {
       await apiRequest('/api/registrations', { method: 'POST', body: { activityId: id } });
-      setMessage('נרשמת בהצלחה לפעילות!');
+      setMessage('נרשמת בהצלחה לפעילות! תודה שאת יוצרת רגע של אושר 💜');
     } catch (err) {
       // 409 = full activity, duplicate, overlap, or another volunteer took the last spot at the same moment
       setError(err.status === 409 ? `לא ניתן להירשם: ${err.message}` : err.message);
     }
-    await load();
+    await Promise.all([load(), loadMine()]);
     setBusy(false);
   };
 
@@ -56,10 +65,11 @@ export default function ActivityDetailsPage({ id, isAdmin, onBack }) {
     <div>
       {backButton}
 
-      <section className="detail-hero">
+      <section className={`detail-hero hero-${activity.category}`}>
         <div className="row">
           <CategoryBadge category={activity.category} />
           {!activity.isActive && <ActivityStatus isActive={false} />}
+          {registered && <span className="badge badge-registered">את רשומה לפעילות זו</span>}
         </div>
         <h2>{activity.title}</h2>
         <div className="hero-sub">
@@ -129,7 +139,13 @@ export default function ActivityDetailsPage({ id, isAdmin, onBack }) {
 
           {!activity.isActive && <Alert type="error">הפעילות בוטלה</Alert>}
 
-          {!isAdmin && (
+          {!isAdmin && registered && (
+            <div className="registered-box">
+              <span className="registered-icon"><Icon name="check" size={22} strokeWidth={2.6} /></span>
+              <div><b>את רשומה לפעילות זו</b><span>אפשר לראות ולבטל במסך "ההרשמות שלי".</span></div>
+            </div>
+          )}
+          {!isAdmin && !registered && (
             <button className="btn btn-primary btn-lg btn-block" disabled={!activity.isActive || full || busy} onClick={register}>
               {busy ? <span className="spinner" /> : <Icon name={full ? 'ban' : 'heart'} />}
               {full ? 'אין מקומות פנויים' : 'הרשמה לפעילות'}

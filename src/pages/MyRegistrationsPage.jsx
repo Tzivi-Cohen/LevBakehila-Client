@@ -10,7 +10,7 @@ const VIEWS = [
   { key: 'Cancelled', label: 'מבוטלות' }
 ];
 
-export default function MyRegistrationsPage() {
+export default function MyRegistrationsPage({ onBrowse }) {
   const [registrations, setRegistrations] = useState(null);
   const [view, setView] = useState('all');
   const [message, setMessage] = useState('');
@@ -40,7 +40,7 @@ export default function MyRegistrationsPage() {
   return (
     <div>
       <PageHeader eyebrow="האזור האישי" icon="heart" title="ההרשמות שלי"
-        subtitle="כל הפעילויות שנרשמת אליהן, במקום אחד.">
+        subtitle="כל הרגעים שאת יוצרת עם הילדים, במקום אחד.">
         {registrations && list.length > 0 && (
           <div className="tabs" role="tablist">
             {VIEWS.map((v) => (
@@ -67,8 +67,13 @@ export default function MyRegistrationsPage() {
       {registrations && visible.length === 0 && (
         <div className="card">
           <EmptyState icon="calendar" title={list.length === 0 ? 'אין הרשמות' : 'אין הרשמות בתצוגה זו'}>
-            {list.length === 0 ? 'עוד לא נרשמת לפעילות. הפעילויות הפתוחות מחכות לך במסך "פעילויות".' : 'נסי לבחור תצוגה אחרת.'}
+            {list.length === 0 ? 'עוד לא נרשמת לפעילות. הילדים מחכים לך במסך "פעילויות".' : 'נסי לבחור תצוגה אחרת.'}
           </EmptyState>
+          {list.length === 0 && (
+            <div className="empty-action">
+              <button className="btn btn-primary" onClick={onBrowse}><Icon name="grid" /> גלי פעילויות</button>
+            </div>
+          )}
         </div>
       )}
 

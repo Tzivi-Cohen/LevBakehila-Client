@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { apiRequest } from '../api.js';
 import { Alert, Icon } from '../ui.jsx';
+import { HeroIllustration } from '../illustrations.jsx';
 
 const FEATURES = [
-  { icon: 'search', title: 'מוצאות פעילות שמתאימה', text: 'סינון לפי שכונה, סוג פעילות ומקומות פנויים.' },
-  { icon: 'calendar', title: 'נרשמות בלחיצה', text: 'המערכת שומרת שלא תירשמי לשתי פעילויות באותה שעה.' },
-  { icon: 'users', title: 'רכזת עם תמונה מלאה', text: 'ניהול פעילויות, נרשמות ומיומנויות במקום אחד.' }
+  { icon: 'smile', title: 'פעילויות עם ילדים', text: 'משחק, יצירה, לימודים ומפגשי שבת – מותאמים לכל ילד.' },
+  { icon: 'calendar', title: 'נרשמות בלחיצה', text: 'המערכת שומרת שלא תירשמי פעמיים או לשתי פעילויות באותה שעה.' },
+  { icon: 'home', title: 'קרוב לבית', text: 'מחפשות לפי שכונה וסוג פעילות, ורואות כמה מקומות נשארו.' }
 ];
 
-export default function LoginPage({ onLogin }) {
-  const [mode, setMode] = useState('login');
+export default function LoginPage({ onLogin, onHome, initialMode = 'login' }) {
+  const [mode, setMode] = useState(initialMode);
   const [login, setLogin] = useState({ email: '', password: '' });
   const [register, setRegister] = useState({ fullName: '', email: '', password: '', neighborhood: '' });
   const [error, setError] = useState('');
@@ -57,15 +58,22 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="auth">
       <section className="auth-hero">
-        <div className="brand">
-          <span className="brand-mark"><Icon name="heart" size={22} strokeWidth={2.2} /></span>
-          <span className="brand-name">לב בקהילה<small>התנדבות שמחברת שכונה</small></span>
+        <div className="auth-hero-top">
+          <button type="button" className="brand" onClick={onHome} aria-label="לב בקהילה – חזרה לדף הבית">
+            <span className="brand-mark"><Icon name="heart" size={22} strokeWidth={2.2} /></span>
+            <span className="brand-name">לב בקהילה<small>מתנדבות וילדים, יחד</small></span>
+          </button>
+          <button type="button" className="btn btn-ghost-light btn-sm" onClick={onHome}>
+            <Icon name="arrow-right" size={15} /> לדף הבית
+          </button>
         </div>
 
         <div>
-          <h1>כל שעה שאת נותנת <em>מחממת לב</em> של מישהו בשכונה.</h1>
-          <p className="lead">מצטרפות לפעילויות התנדבות קרובות לבית – עזרה בשיעורי בית, ליווי בשבת ופעילויות חברתיות – ורואות בזמן אמת כמה מקומות נשארו.</p>
+          <h1>כל שעה שאת נותנת <em>יוצרת רגע של אושר</em> לילד.</h1>
+          <p className="lead">מצטרפות לפעילויות עם ילדים עם צרכים מיוחדים – משחק ויצירה, עזרה בלימודים ומפגשי שבת – קרוב לבית.</p>
         </div>
+
+        <div className="auth-art"><HeroIllustration /></div>
 
         <div className="features">
           {FEATURES.map((f) => (
