@@ -1,5 +1,10 @@
 node_modules/
 dist/
+*.log
+
+# Environment files - private, never uploaded. Only the example file is shared.
 .env
 .env.local
-*.log
+.env.production
+.env.*
+!.env.example
