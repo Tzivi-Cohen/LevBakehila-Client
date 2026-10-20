@@ -8,6 +8,7 @@ npm run dev      # http://localhost:5173
 ```
 
 The client calls the API at `https://localhost:7257` by default. To use a different address, copy `.env.example` to `.env` and change `VITE_API_URL`.
+On Render (Static Site): set `VITE_API_URL=https://<api>.onrender.com` (no trailing `/`) in the Environment settings, then run "Clear build cache & deploy" - the value is inlined at build time.
 Start the server first (see the server README).
 
 Screens:

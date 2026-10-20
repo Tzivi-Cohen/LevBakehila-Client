@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'https://localhost:7257';
+// Vite inlines VITE_API_URL at build time; the localhost default is for `npm run dev` only
+const API_URL = (import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'https://localhost:7257' : '')).replace(/\/+$/, '');
 const AUTH_KEY = 'levbakehila.auth';
 
 export class ApiError extends Error {
